@@ -18,6 +18,7 @@ class Icon extends MX_Controller
 	{
 		switch ($this->getEmulatorString())
 		{
+			case 'vmangos':
 			case 'trinity':
 			case 'trinity_tbc':
 			case 'trinity_cata':
@@ -102,7 +103,7 @@ class Icon extends MX_Controller
 		
 		$realmObj = $this->realms->getRealm($realm);
 		$item = $realmObj->getWorld()->getItem($entry);
-		
+				
 		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_cata_v2')
 		{
 			return $this->getDisplayIdDB_WH($entry, $realm);
@@ -128,9 +129,17 @@ class Icon extends MX_Controller
 			return $this->getDisplayIdDB_WH($entry, $realm);
 		}
 		//Cache the display id
-		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['displayid']);
 		
+		if ($this->db->_error_message())
+		{
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['display_id']);
+		return $item['display_id'];
+		}
+		else
+		{
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['displayid']);
 		return $item['displayid'];
+		}
 	}
 	
 	private function getDisplayIdDB_WH($entry, $realm)
