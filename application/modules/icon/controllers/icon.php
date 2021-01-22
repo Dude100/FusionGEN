@@ -132,13 +132,13 @@ class Icon extends MX_Controller
 		
 		if ($this->db->_error_message())
 		{
-		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['display_id']);
-		return $item['display_id'];
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['display']);
+		return $item['displayid'];
 		}
 		else
 		{
-		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['displayid']);
-		return $item['displayid'];
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['display_id']);
+		return $item['display_id'];
 		}
 	}
 	
