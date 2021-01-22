@@ -66,24 +66,30 @@ class World_model
 
 			if($this->db->_error_message())
 			{
-				die($this->db->_error_message());
-			}
-
-			if($query->num_rows() > 0)
-			{
-				$row = $query->result_array();
-
-				// Cache it forever
-				$this->CI->cache->save("items/item_".$this->realmId."_".$id, $row[0]);
-
-				return $row[0];
+				$xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$id."&xml"));
+				$DisplayId = $xml->item->icon["displayId"];
+				$iconId = str_replace("[0]","",$DisplayId);
+				$this->CI->cache->save("items/item_".$this->realmId."_".$id, $iconId, 60*60*24);
+				return $query;
 			}
 			else 
 			{
-				// Cache it for 24 hours
-				$this->CI->cache->save("items/item_".$this->realmId."_".$id, 'empty', 60*60*24);
+				if($query->num_rows() > 0)
+				{
+					$row = $query->result_array();
 
-				return false;	
+					// Cache it forever
+					$this->CI->cache->save("items/item_".$this->realmId."_".$id, $row[0]);
+
+					return $row[0];
+				}
+				else 
+				{
+					// Cache it for 24 hours
+					$this->CI->cache->save("items/item_".$this->realmId."_".$id, 'empty', 60*60*24);
+
+					return false;	
+				}
 			}
 		}
 	}

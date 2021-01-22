@@ -2,6 +2,48 @@
 
 class Icon extends MX_Controller
 {
+	private $EmulatorSimpleString = '';
+	
+	private function getEmulatorString()
+	{
+		return $this->EmulatorSimpleString;
+	}
+	
+	private function getEmulatorBuild()
+	{		
+		return false;
+	}
+	
+	private function has_item_template()
+	{
+		switch ($this->getEmulatorString())
+		{
+			case 'trinity':
+			case 'trinity_tbc':
+			case 'trinity_cata':
+			case 'skyfire':
+			case 'arkcore':
+				return true;
+		}
+		
+		return false;
+	}
+	
+	private function no_item_template()
+	{
+		switch ($this->getEmulatorString())
+		{
+			case 'trinity_cata_v2':
+			case 'trinity_mop':
+			case 'trinity_wod':
+			case 'trinity_legion':
+			case 'trinity_bfa':
+			case 'trinity_shadowlands':
+				return true;
+		}
+		
+		return false;
+	}
 	/**
 	 * Get an item's icon display name and cache it
 	 * @param Int $realm
@@ -14,6 +56,9 @@ class Icon extends MX_Controller
 		// Check if ID and realm is valid
 		if($id != false && is_numeric($id) && $realm != false)
 		{
+			// Get the emulator string
+			$this->EmulatorSimpleString = str_replace(array('_ra', '_soap', '_rbac'), '', $this->realms->getRealm($realm)->getConfig('emulator'));
+			
 			// It is already a display ID
 			if($isDisplayId == 1)
 			{
@@ -22,10 +67,10 @@ class Icon extends MX_Controller
 			else
 			{
 				$displayId = $this->getDisplayId($id, $realm);
-
+				
 				if($displayId != false)
 				{
-					$icon = $this->getDisplayName($displayId);
+					$icon = $this->getDisplayName($displayId, $id);
 
 					if(substr($icon, 0, 3) == pack("CCC", 0xef, 0xbb, 0xbf))
 					{
@@ -37,7 +82,7 @@ class Icon extends MX_Controller
 					$icon = "inv_misc_questionmark";
 				}
 			}
-
+			
 			die($icon);
 		}
 	}
@@ -47,23 +92,68 @@ class Icon extends MX_Controller
 	 * @param Int $item
 	 * @return Int
 	 */
-	private function getDisplayId($item, $realm)
+	private function getDisplayId($entry, $realm)
 	{
+		$cache = $this->cache->get("items/item_displayid_".$realm."_".$entry);
+		if ($cache)
+		{
+			return $cache;
+		}
+		
 		$realmObj = $this->realms->getRealm($realm);
-		$item = $realmObj->getWorld()->getItem($item);
-
+		$item = $realmObj->getWorld()->getItem($entry);
+		
+		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_cata_v2')
+		{
+			return $this->getDisplayIdDB_WH($entry, $realm);
+		}
+		
+		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_wod')
+		{
+			return $this->getDisplayIdDB_WH($entry, $realm);
+		}
+		
+		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_legion')
+		{
+			return $this->getDisplayIdDB_WH($entry, $realm);
+		}
+		
+		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_bfa')
+		{
+			return $this->getDisplayIdDB_WH($entry, $realm);
+		}
+		
+		if ((!$item || $item == "empty") && $this->getEmulatorString() == 'trinity_shadowlands')
+		{
+			return $this->getDisplayIdDB_WH($entry, $realm);
+		}
+		//Cache the display id
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $item['displayid']);
+		
 		return $item['displayid'];
 	}
-
+	
+	private function getDisplayIdDB_WH($entry, $realm)
+	{
+		$xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$entry."&xml"));
+		$DisplayId = $xml->item->icon["displayId"];
+		$result = str_replace("[0]","",$DisplayId);
+			
+		//Cache the display id
+		$this->cache->save("items/item_displayid_".$realm."_".$entry, $result);
+			
+		return $result;
+	}
+	
 	/**
 	 * Get the display name from the raxezdev display ID API
 	 * @param Int $displayId
 	 * @return String
 	 */
-	private function getDisplayName($displayId)
+	private function getDisplayName($displayId, $id)
 	{
 		$cache = $this->cache->get("items/display_".$displayId);
-
+		
 		// Can we use the cache?
 		if($cache !== false)
 		{
@@ -71,15 +161,17 @@ class Icon extends MX_Controller
 		}
 		else
 		{
-			$retailId = $this->findRetailItem($displayId);
-			
-			if(!$retailId)
+			$icon = $this->getIcon($displayId, $id);
+						
+			if(!$icon)
 			{
-				$name = "inv_misc_questionmark";
+				$xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$id."&xml"));
+				$xml_name = $xml->item->icon;
+				$name = str_replace("[0]","",$xml_name);
 			}
 			else
 			{
-				$name = $this->getIconName($retailId);
+				$name = str_replace(' ', '-', strtolower($icon));
 
 				// In case it wasn't found: show ?-icon
 				if(empty($name))
@@ -94,7 +186,23 @@ class Icon extends MX_Controller
 		
 		return $name;
 	}
-
+	
+	private function getIcon($DisplayId, $id)
+	{
+		if ($this->no_item_template())		
+		{
+			$xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$id."&xml"));
+			$xml_iconname = $xml->item->icon;
+			$iconname = str_replace("[0]","",$xml_iconname);
+			return $iconname;
+		}
+		else if ($this->has_item_template())
+		{		
+			return false;
+		}
+	}
+	
+	/*
 	private function findRetailItem($id)
 	{
 		// Get the item ID
@@ -112,7 +220,7 @@ class Icon extends MX_Controller
 			return false;
 		}
 	}
-
+	
 	private function getIconName($item)
 	{
 		// Get the item XML data
@@ -134,7 +242,8 @@ class Icon extends MX_Controller
 
 		return $icon;
 	}
-
+	*/
+	
 	/**
 	 * Convert XML data to an array
 	 * @param String $xml

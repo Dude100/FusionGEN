@@ -9,3 +9,6 @@
 	 	});
 	});
 </script>
+<span class="item_bg">
+    {$tooltip}
+</span>

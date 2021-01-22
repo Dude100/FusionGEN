@@ -21,7 +21,16 @@ class Item extends MX_Controller
 
 		if($cache2 !== false)
 		{
-			$itemName = $cache2['name'];
+			if($cache2 = "empty")
+			{
+				$xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$id."&xml"));
+				$name = $xml->item->name;
+				$itemName = $name;
+			}
+			else
+			{
+				$itemName = $cache2['name'];
+			}
 		}
 		else
 		{
@@ -38,8 +47,12 @@ class Item extends MX_Controller
 		}
 		else
 		{
-			$item = $this->template->loadPage("ajax.tpl", array('module' => 'item', 'id' => $id, 'realm' => $realm, 'icon' => $icon));
-		}
+      $xml = simplexml_load_string(file_get_contents("https://wowhead.com/?item=".$id."&xml"));
+      $itemHtmlTooltip = $xml->item->htmlTooltip;
+      $item = $this->template->loadPage("ajax.tpl", array('module' => 'item', 'id' => $id, 'realm' => $realm, 'icon' => $icon, 'tooltip' => $itemHtmlTooltip));
+			$this->cache->save("items/tooltip_".$realm."_".$id."_".getLang(), $item);
+    }
+		
 
 		$content = $this->template->loadPage("item.tpl", array('module' => 'item', 'item' => $item, 'icon' => $icon));
 
@@ -57,11 +70,11 @@ class Item extends MX_Controller
 	private function getIcon($id)
 	{
 		$cache = $this->cache->get("items/item_".$this->realm."_".$id);
-
+		
 		if($cache !== false)
 		{
-			$cache2 = $this->cache->get("items/display_".$cache['displayid']);
-
+			$cache2 = $this->cache->get("items/display_".$cache);
+						
 			if($cache2 != false)
 			{
 				return "<div class='item'><a></a><img src='https://wow.zamimg.com/images/wow/icons/large/".$cache2.".jpg' /></div>";
