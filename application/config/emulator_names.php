@@ -8,6 +8,8 @@ $emulators = array(
 	"trinity_rbac_soap" => 			"TrinityCore (3.3.5) with RBAC - connected through SOAP",
 	"trinity_rbac_cata_ra" => 		"TrinityCore (4.3.4) with RBAC - connected through RA",
 	"trinity_rbac_cata_soap" => 	"TrinityCore (4.3.4) with RBAC - connected through SOAP",
+	"trinity_rbac_cata_v2_ra" => 		"TrinityCore (4.3.4v2) with RBAC - connected through RA", //For Cata with no item_template table
+	"trinity_rbac_cata_v2_soap" => 	"TrinityCore (4.3.4v2) with RBAC - connected through SOAP", //For Cata with no item_template table
 	"trinity_rbac_mop_ra" => 		"Trinitycore (5.x.x) with RBAC - connected through RA",
 	"trinity_rbac_mop_soap" => 		"Trinitycore (5.x.x) with RBAC -  connected through SOAP",
 	"trinity_rbac_wod_ra" => 		"TrinityCore (6.x.x) with RBAC - connected through RA",
@@ -39,6 +41,9 @@ $emulators = array(
 	/* MangosR2 */
 	"mangosr2_ra" => 				"MaNGoS R2 (3.3.5) - connected through RA",
 	"mangosr2_soap" => 				"MaNGoS R2 (3.3.5) - connected through SOAP",
+	/*VMangos */
+	"vmangos_ra" => 				"VMangos (1.x) - connected through RA",
+	"vmangos_soap" => 				"VMangos (1.x) - connected through SOAP",
 	/* ArcEMU */
 	"arcemu" => 					"ArcEmu (3.3.5) - connected through ????",
 	/* AscEMU */
