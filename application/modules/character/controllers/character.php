@@ -62,29 +62,37 @@ class Character extends MX_Controller
 		}
 	}
 
-	public function getItem($id = false)
+	public function getItem($id = false, $slot = 0)
 	{
-		if($id != false)
+		if ($id != false)
 		{
-			$cache = $this->cache->get("items/item_".$this->realm."_".$id);
-
-			if($cache !== false)
+			$DisplayIdCache = $this->cache->get("items/item_displayid_".$this->realm."_".$id);
+			
+			if ($DisplayIdCache !== false)
 			{
-				$cache2 = $this->cache->get("items/display_".$cache['displayid']);
+				$IconCache = $this->cache->get("items/display_".$DisplayIdCache);
 
-				if($cache2 != false)
+				if ($IconCache != false)
 				{
-					return "<a href='" . $this->template->page_url . "item/" . $this->realm . "/" . $id . "' rel='item=".$id."' data-realm='".$this->realm."'></a><img src='https://wow.zamimg.com/images/wow/icons/large/".$cache2.".jpg' />";
+					return "<a 	href='" . $this->template->page_url . "item/" . $this->realm . "/" . $id . "' 
+								".($this->config->item("use_fcms_tooltip") ? 'rel-e' : 'rel')."='item=".$id."' 
+								data-item-slot='".$slot."' 
+								data-realm='".$this->realm."'>
+							</a><img src='https://wow.zamimg.com/images/wow/icons/large/".$IconCache.".jpg' />";
 				}
 				else
 				{
-					return "<a href='" . $this->template->page_url . "item/" . $this->realm . "/" . $id . "' rel='item=".$id."' data-realm='".$this->realm."'></a><img src='https://wow.zamimg.com/images/wow/icons/large/inv_misc_questionmark.jpg' />";
+					return "<a 	href='" . $this->template->page_url . "item/" . $this->realm . "/" . $id . "' 
+								".($this->config->item("use_fcms_tooltip") ? 'rel-e' : 'rel')."='item=".$id."' 
+								data-item-slot='".$slot."' 
+								data-realm='".$this->realm."'>
+							</a><img src='https://wow.zamimg.com/images/wow/icons/large/inv_misc_questionmark.jpg' />";
 				}
 			}
 			else
 			{
 				$this->canCache = false;
-				return $this->template->loadPage("icon_ajax.tpl", array('id' => $id, 'realm' => $this->realm, 'url' => $this->template->page_url));
+				return $this->template->loadPage("icon_ajax.tpl", array('id' => $id, 'realm' => $this->realm, 'slot' => $slot, 'url' => $this->template->page_url));
 			}
 		}
 	}
